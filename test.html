@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<body>
+<style>
+#demo{
+  font-size:20px
+}
+.demo{
+  position:relative;
+   font-size:20px
+  font-size:20px
+  font-color:blue;
+   
+}
+.promo{
+       font-size:30px;
+    padding-left:5px;
+    padding-top:5px;
+    top:0px;
+    height:40px;
+    width:100%;
+    background:#262626;
+    
+    color:#fff;
+    font-family: Arial, Helvetica, sans-serif;
+    margin:0px;
+
+}
+</style>
+<footer class = "promo">
+  Qotpro
+</footer>
+<p id="demo"></p>
+<p id="demo1"></p>
+<p id="demo2"></p>
+<p id="demo3"></p>
+<p id="demo4"> </p>
+<p id="demo6"> </p>
+
+<lable><center><b>Power consumed</b></center></lable>
+<div id="chart"></div>
+<lable><center><b>Range</b></center></lable>
+<div id="chart1"></div>
+<lable><center><b>velocity Vs Time (500ms)</b></center></lable>
+<div id="chart2"></div>
+
+<div>
+<label class="weight">Weight</label>
+<input type="text" id="weight" value="200" ></div>
+
+<br>
+<div>
+<label class="deacceleration">Deceleration</label>
+<input type="text" id="deacceleration" value="5"></div>
+
+<br><div>
+<label class="total_power">Total Power(Kwh)</label>
+<input type="text" id="total_power" value="1"></div>
+
+<br><div>
+<label class="radius_tire">radius_tire (m)</label>
+<input type="text" id="radius_tire" value=".15"></div>
+
+<br><div>
+<label class="acceleration">acceleration</label>
+<input type="text" id="acceleration" value=".5"></div>
+<br><div>
+<label class="km_max">Max Speed (km/h)</label>
+<input type="text" id="km_max" value="60"></div>
+<button onclick="main_q()">Turn on </button>
+
+<H4>Note: To reset refreash and Use "W" for acceleration "S" for Braking.  acceleration limit can be changed while driving Using "A" and "D" similarly Speed limit "Q" and "E". </H4>
+
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+function main_q(){
+document.addEventListener("keyup", myFunction);
+document.addEventListener("keydown", myFunction1);
+  var time = 0;
+  var time1 = 0;
+  var t_time = 0;
+  var interval ;
+  var interval1 ;
+  var b1 = 1;
+  var b2 = 1;
+  var weight = document.getElementById("weight").value;
+ 
+  var deacceleration = document.getElementById("deacceleration").value;
+  
+  var power_limit = 5;
+  
+  var radius_tire=document.getElementById("radius_tire").value;
+     
+
+	var km_max = document.getElementById("km_max").value;;//max speed
+  var total_power = document.getElementById("total_power").value;
+  var acceleration = function(){
+  if(km_cal<document.getElementById("km_max").value){
+   document.getElementById("demo4").innerHTML = "Acceleration <b>"+document.getElementById("acceleration").value+"</b> Max Speed <b>"+document.getElementById("km_max").value+"</b>";
+  return  document.getElementById("acceleration").value;
+  }else {
+  return 0;
+  }}
+
+function myFunction(e) {
+
+  if(e.key=="w"){
+   clearInterval(interval);
+   time = 0;
+   b1 = 1;
+   back_tte();
+      document.getElementById("demo1").innerHTML = "Power Consumed<b> "+power_tte(0)+"</b> KW";
+
+   }
+   if(e.key=="s"){
+   clearInterval(interval1);
+   time1 = 0;
+   b2 = 1; 
+   }
+}
+var acc = 0;
+var vel = Number(km_max);
+ function myFunction1(e){ 
+ if(e.key=="q"){
+vel=vel+1;
+document.getElementById("km_max").value=vel;
+document.getElementById("demo4").innerHTML = "Acceleration <b>"+document.getElementById("acceleration").value+"</b> Max Speed <b>"+document.getElementById("km_max").value+"</b>";
+}
+if(e.key=="e"){
+if(vel>15){
+vel=vel-1;
+document.getElementById("km_max").value=vel;
+document.getElementById("demo4").innerHTML = "Acceleration <b>"+document.getElementById("acceleration").value+"</b> Max Speed <b>"+document.getElementById("km_max").value+"</b>";
+}}
+if(e.key=="a"){
+acc=acc+.5;
+document.getElementById("acceleration").value=acc;
+document.getElementById("demo4").innerHTML = "Acceleration <b>"+document.getElementById("acceleration").value+"</b> Max Speed <b>"+document.getElementById("km_max").value+"</b>";
+}
+if(e.key=="d"){
+if(acc>.5){
+acc=acc-.5;
+document.getElementById("acceleration").value=acc;
+document.getElementById("demo4").innerHTML = "Acceleration <b>"+document.getElementById("acceleration").value+"</b> Max Speed <b>"+document.getElementById("km_max").value+"</b>";
+}}
+ if(e.key=="s"){
+  if(b2==1){
+ b2=0;
+ interval1 = setInterval(function() {
+   time1++;
+   if(vel_cal>2){
+deacceleration1();}
+else{
+vel_cal=0;
+}
+    
+    
+}, 500);}
+ }
+  if(e.key=="w"){
+  
+  if(b1==1){
+    b1 = 0;
+   
+   interval = setInterval(function() {
+   time++;
+var power_consumed1 = power_consumed(power_tte(1));
+var power_tte1 = power_tte(1);
+var expect_range1 = expect_range(power_tte(1));
+   apply_call(time);
+  document.getElementById("demo3").innerHTML = "range : <b> "+expect_range1.toFixed(2)+" Km</b>";
+    document.getElementById("demo2").innerHTML ="Power remaining : <b>"+power_consumed1.toFixed(2)+" Kwh</b>";
+   document.getElementById("demo1").innerHTML = "Power Consumed :<b> "+power_tte1.toFixed(2)+" KW</b>";
+}, 500);}}
+ 
+
+}
+var vel_cal=0;
+var km_cal=0;
+var dis_cal = 0;
+
+var t_interval = setInterval(function() {
+dis_cal=vel_cal*0.5 + dis_cal;
+let display_vel=vel_cal*3.6;
+let display_rpm=wheel_rpm();
+    Plotly.extendTraces('chart2', { y: [[],[vel_cal]]}, [0,1]);
+
+document.getElementById("demo").innerHTML = "Distance travelled <b>"+dis_cal.toFixed(1)+" </b>meters wheel rpm <b>"+display_rpm.toFixed(0)+"</b> kmph <b>"+display_vel.toFixed(2)+"</b>";
+
+
+if(b1==1){
+if(vel_cal>2){
+back_tte();}
+else{
+vel_cal=0;
+}
+}
+ 
+}, 500); 
+
+function apply_call(time){
+document.getElementById("demo6").innerHTML="Throttle Time "+time+" Sec";
+console.log("time"+time*.5);
+
+vel_cal = acceleration()*.5 + vel_cal;  
+km_cal=vel_cal*3.6;
+
+}
+
+function power_tte(b3){
+if(b3==1){
+
+var torque = rolling_resistance()+air_resistance();
+var tte =(weight*acceleration());
+tte=(tte + torque)*radius_tire*1.50;
+var rpm = wheel_rpm();
+var Power= (2*3.14*tte*rpm)/60000;
+return Power;
+}else{return 0;}
+}
+
+function back_tte(){
+var torque = rolling_resistance()+air_resistance();
+var rpm = wheel_rpm();
+let deacceleration = torque/weight;
+var Power= (2*3.14*torque*rpm)/60000;
+
+vel_cal=vel_cal-deacceleration;
+
+}
+function rolling_resistance(){
+let cd = 0.015;
+let rolling_tte = (cd*weight);
+return rolling_tte;
+}
+
+function wheel_rpm(){
+let wheel_rpm = vel_cal*60/(2*3.14*radius_tire);
+ //let wheel_rpm = vel_cal*25/(3*3.14*radius_tire);
+ return wheel_rpm;
+}
+function air_resistance(){
+let density_of_fluid=1.2;
+let drag_coefficient=.2;
+let area = 0.875;
+let ar=.5*density_of_fluid*drag_coefficient*vel_cal*vel_cal*area;
+return ar;
+}
+function deacceleration1() {
+vel_cal = vel_cal - deacceleration;
+}
+function power_consumed(p_consumed) {
+ total_power = total_power-p_consumed/3600; 
+ return total_power;
+}
+var temp=0;
+var temp1=0;
+function expect_range(p_consumed) {
+temp = (dis_cal-temp1)/1000;
+temp1= dis_cal;
+let range_n = total_power*temp/(p_consumed/3600);
+ Plotly.extendTraces('chart', { y: [[total_power], [p_consumed]]}, [0,1]) ;
+ Plotly.extendTraces('chart1', { y: [[range_n],[vel_cal]]}, [0,1]);
+            
+     
+return range_n;
+ 
+
+ //return total_power/(p_consumed/3600); 
+ 
+}
+var res = "0";
+  Plotly.plot('chart',[{
+                y:[res],
+                type:'line',
+                name:'T0tal p0wer kwh'
+            }]);
+            Plotly.plot('chart',[{
+                y:[res],
+                type:'line' ,
+                name:'consumed'
+            }]);
+  Plotly.plot('chart1',[{
+                y:[res],
+                type:'line',
+                name:'Range Km'
+            }]);
+             Plotly.plot('chart1',[{
+                y:[res],
+                type:'line',
+                name:'Range Km'
+            }]);
+             
+               Plotly.plot('chart2',[{
+                y:[res],
+                type:'line',
+                name:'vel0city'
+            }]);
+             Plotly.plot('chart2',[{
+                y:[res],
+                type:'line',
+                name:'Km/h'
+            }]);}
+            
+</script>
+
+</body>
+</html>
